@@ -15,3 +15,20 @@ export interface ISession {
     userId: Types.ObjectId;
     token: string;
 }
+
+export interface ITask {
+    section: Types.ObjectId;
+    title: string;
+    content: string;
+    position?: number;
+}
+
+export interface IBoard {
+    user: Types.ObjectId;
+    icon: string;
+    title: string;
+    description: string;
+    position?: number;
+    favourite: boolean;
+    favouritePosition: number;
+}
