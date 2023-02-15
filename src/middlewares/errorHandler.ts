@@ -7,6 +7,7 @@ const errorHandler = (
     res: Response,
     next: NextFunction
 ) => {
+    console.log("err :", error);
     let status = 500;
     let message = "Internal Server Error";
 

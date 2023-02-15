@@ -10,7 +10,7 @@ export const signToken = (
     const token = jwt.sign(
         data,
         Buffer.from(secret, "base64").toString("ascii"),
-        { algorithm: "RS256", expiresIn: 1000 * 60 * 60, ...options }
+        { algorithm: "RS256", ...options }
     );
     return token;
 };
@@ -18,7 +18,8 @@ export const signToken = (
 export const createTokens = (id: Types.ObjectId) => {
     const accessToken = signToken(
         { id },
-        config.get<string>("accessTokenPrivateKey")
+        config.get<string>("accessTokenPrivateKey"),
+        { expiresIn: 1000 * 60 * 60 }
     );
 
     const refreshToken = signToken(

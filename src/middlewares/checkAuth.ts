@@ -5,8 +5,7 @@ import config from "config";
 
 const checkAuth = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const accessToken =
-            req.headers.authorization?.split("Bearer ")[1] || "";
+        const accessToken = req.headers.authorization?.substring(7) || "";
         const refreshToken = req.headers["X-Refresh"] || "";
 
         if (!accessToken || !refreshToken)

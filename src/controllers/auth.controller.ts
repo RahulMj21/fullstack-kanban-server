@@ -5,6 +5,7 @@ import { TRegisterInput } from "../schemas/register.schema";
 import { BigPromise, CustomErrors } from "../utils";
 import { createTokens, signToken, verifyToken } from "../utils/tokens";
 import config from "config";
+import { omit } from "lodash";
 
 export const register = BigPromise(
     async (
@@ -13,6 +14,10 @@ export const register = BigPromise(
         next: NextFunction
     ) => {
         const { name, email, password } = req.body;
+        const alreadyExists = await User.exists({ email });
+        console.log("alreadyExists");
+        if (alreadyExists)
+            return next(CustomErrors.badRequest("email already exists"));
 
         const user = await User.create({ name, email, password });
 
@@ -61,7 +66,7 @@ export const login = BigPromise(
 
 export const logout = BigPromise(
     async (req: Request, res: Response, next: NextFunction) => {
-        const { id } = req.params;
+        const { id } = res.locals;
 
         const user = await User.findById(id);
         if (!user) return next(CustomErrors.unauthorized());
@@ -74,7 +79,7 @@ export const logout = BigPromise(
 
 export const refresh = BigPromise(
     async (req: Request, res: Response, next: NextFunction) => {
-        const refreshToken = req.headers["X-Refresh"] || "";
+        const refreshToken = req.headers["x-refresh"] || "";
         if (!refreshToken) return next(CustomErrors.unauthorized());
 
         const tokenData = verifyToken(
@@ -95,9 +100,24 @@ export const refresh = BigPromise(
 
         const accessToken = signToken(
             { id: user._id },
-            config.get<string>("accessTokenPrivateKey")
+            config.get<string>("accessTokenPrivateKey"),
+            { expiresIn: 1000 * 60 * 60 }
         );
 
         return res.status(200).json({ success: true, data: { accessToken } });
+    }
+);
+
+export const me = BigPromise(
+    async (req: Request, res: Response, next: NextFunction) => {
+        const { id } = res.locals;
+
+        const user = await User.findById(id);
+        if (!user) return next(CustomErrors.unauthorized());
+
+        return res.status(200).json({
+            success: false,
+            data: omit(user.toJSON(), ["password", "__v", "updatedAt"]),
+        });
     }
 );
