@@ -15,7 +15,6 @@ export const register = BigPromise(
     ) => {
         const { name, email, password } = req.body;
         const alreadyExists = await User.exists({ email });
-        console.log("alreadyExists");
         if (alreadyExists)
             return next(CustomErrors.badRequest("email already exists"));
 
@@ -116,7 +115,7 @@ export const me = BigPromise(
         if (!user) return next(CustomErrors.unauthorized());
 
         return res.status(200).json({
-            success: false,
+            success: true,
             data: omit(user.toJSON(), ["password", "__v", "updatedAt"]),
         });
     }
