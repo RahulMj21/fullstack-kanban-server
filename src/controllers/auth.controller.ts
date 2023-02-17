@@ -22,8 +22,14 @@ export const register = BigPromise(
 
         const { accessToken, refreshToken } = createTokens(user._id);
 
-        await Session.create({ userId: user._id, token: refreshToken });
-
+        const session = await Session.create({
+            userId: user._id,
+            token: refreshToken,
+        });
+        if (!session)
+            return next(
+                CustomErrors.wentWrong("cannot register at the moment")
+            );
         return res
             .status(201)
             .json({ success: true, data: { accessToken, refreshToken } });
@@ -47,7 +53,7 @@ export const login = BigPromise(
 
         const { accessToken, refreshToken } = createTokens(user._id);
 
-        Session.findOneAndUpdate(
+        const session = await Session.findOneAndUpdate(
             { userId: user._id },
             { token: refreshToken },
             {
@@ -55,6 +61,8 @@ export const login = BigPromise(
                 upsert: true,
             }
         );
+
+        if (!session) return next(CustomErrors.unauthorized());
 
         res.status(200).json({
             success: true,
@@ -70,7 +78,8 @@ export const logout = BigPromise(
         const user = await User.findById(id);
         if (!user) return next(CustomErrors.unauthorized());
 
-        await Session.findOneAndDelete({ userId: user._id });
+        const session = await Session.findOneAndDelete({ userId: user._id });
+        if (!session) return next(CustomErrors.unauthorized());
 
         return res.status(200).json({ success: true, message: "logged out" });
     }
@@ -100,7 +109,7 @@ export const refresh = BigPromise(
         const accessToken = signToken(
             { id: user._id },
             config.get<string>("accessTokenPrivateKey"),
-            { expiresIn: 1000 * 60 * 60 }
+            { expiresIn: config.get<number>("accessTokenExpiry") }
         );
 
         return res.status(200).json({ success: true, data: { accessToken } });

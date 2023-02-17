@@ -19,13 +19,13 @@ export const createTokens = (id: Types.ObjectId) => {
     const accessToken = signToken(
         { id },
         config.get<string>("accessTokenPrivateKey"),
-        { expiresIn: 1000 * 60 * 60 }
+        { expiresIn: config.get<number>("accessTokenExpiry") }
     );
 
     const refreshToken = signToken(
         { id },
-        config.get<string>("accessTokenPrivateKey"),
-        { expiresIn: 1000 * 60 * 60 * 24 * 30 }
+        config.get<string>("refreshTokenPrivateKey"),
+        { expiresIn: config.get<number>("refreshTokenExpiry") }
     );
 
     return { accessToken, refreshToken } as const;
