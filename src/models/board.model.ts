@@ -5,7 +5,7 @@ const boardSchema = new Schema<IBoard>(
     {
         user: { type: Schema.Types.ObjectId, ref: "User", required: true },
         icon: { type: String, default: "🏷️" },
-        title: { type: String, default: "Untitled" },
+        title: { type: String, required: true, unique: true },
         description: {
             type: String,
             default: `Add description here..
@@ -13,7 +13,7 @@ const boardSchema = new Schema<IBoard>(
     🟢 Let's start...
     `,
         },
-        position: { type: Number },
+        position: { type: Number, required: true },
         favourite: { type: Boolean, default: false },
         favouritePosition: { type: Number, default: 0 },
     },

@@ -2,8 +2,8 @@ import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
 import cors from "cors";
-import { authRoutes, testRoutes } from "./routes";
-import { errorHandler } from "./middlewares";
+import { authRoutes, boardRoutes, testRoutes } from "./routes";
+import { checkAuth, errorHandler } from "./middlewares";
 
 const app = express();
 
@@ -11,7 +11,9 @@ app.use(express.json());
 app.use(cors({ origin: "*" }));
 
 app.use("/api/v1", testRoutes);
-app.use("/api/v1", authRoutes);
+app.use("/api/v1/users", authRoutes);
+app.use(checkAuth);
+app.use("/api/v1/boards", boardRoutes);
 
 app.use(errorHandler);
 export default app;

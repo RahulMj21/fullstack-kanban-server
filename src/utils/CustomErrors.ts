@@ -14,6 +14,9 @@ class CustomErrors extends Error {
     static badRequest(message = "Bad Request", status = 400) {
         return new CustomErrors(status, message);
     }
+    static notFound(message = "item not found", status = 404) {
+        return new CustomErrors(status, message);
+    }
     static wentWrong(message = "Oops.. something went wrong", status = 500) {
         return new CustomErrors(status, message);
     }
