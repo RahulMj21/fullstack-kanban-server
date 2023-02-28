@@ -17,7 +17,14 @@ export const createBoard = BigPromise(
         });
         if (!board) return next(CustomErrors.wentWrong("cannot create board"));
 
-        return res.status(201).json({ success: true, data: board.toJSON() });
+        const populatedBoard = await board.populate({
+            path: "user",
+            select: { _id: 1, name: 1 },
+        });
+
+        return res
+            .status(201)
+            .json({ success: true, data: populatedBoard.toJSON() });
     }
 );
 
