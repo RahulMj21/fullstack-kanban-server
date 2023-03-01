@@ -79,7 +79,7 @@ export const getFavouriteBoards = BigPromise(
 export const getSingleBoard = BigPromise(
     async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
         const id = req.params.id;
-        if (id === "")
+        if (!id || id === "" || typeof id === "undefined")
             return next(CustomErrors.badRequest("board_id cannot be empty"));
 
         const board = await Board.findById(id).populate({
@@ -87,7 +87,6 @@ export const getSingleBoard = BigPromise(
             select: { _id: 1, name: 1 },
         });
         if (!board) return next(CustomErrors.notFound());
-
         return res.status(200).json({ success: true, data: board.toJSON() });
     }
 );
