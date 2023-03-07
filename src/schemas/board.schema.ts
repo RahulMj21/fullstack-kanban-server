@@ -14,4 +14,4 @@ export const BoardSchema = object({
     }),
 });
 
-export type TCreateBoardInput = TypeOf<typeof BoardSchema>["body"];
+export type TICreateBoardInput = TypeOf<typeof BoardSchema>["body"];

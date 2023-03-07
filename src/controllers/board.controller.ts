@@ -1,11 +1,13 @@
 import { NextFunction, Request, Response } from "express";
+import { Document, Types } from "mongoose";
 import { Board } from "../models";
-import { TCreateBoardInput } from "../schemas/board.schema";
+import { TICreateBoardInput } from "../schemas/board.schema";
 import { BigPromise, CustomErrors } from "../utils";
+import { IBoard } from "../utils/types";
 
 export const createBoard = BigPromise(
     async (
-        req: Request<{}, {}, TCreateBoardInput>,
+        req: Request<{}, {}, TICreateBoardInput>,
         res: Response,
         next: NextFunction
     ) => {
@@ -93,6 +95,28 @@ export const getSingleBoard = BigPromise(
 
 export const updateBoard = BigPromise(
     async (req: Request, res: Response, next: NextFunction) => {}
+);
+
+export const updateBoardPosition = BigPromise(
+    async (
+        req: Request<{}, {}, { boards: { _id: string }[] }>,
+        res: Response,
+        next: NextFunction
+    ) => {
+        const boards = req.body.boards;
+
+        for (const key in boards.reverse()) {
+            const board = boards[key];
+            await Board.findByIdAndUpdate(board._id, {
+                $set: { position: key },
+            });
+        }
+
+        return res.status(200).json({
+            status: "success",
+            message: "position updated",
+        });
+    }
 );
 
 export const deleteBoard = BigPromise(
