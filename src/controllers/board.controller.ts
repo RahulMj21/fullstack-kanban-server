@@ -1,9 +1,7 @@
 import { NextFunction, Request, Response } from "express";
-import { Document, Types } from "mongoose";
 import { Board } from "../models";
 import { TICreateBoardInput } from "../schemas/board.schema";
 import { BigPromise, CustomErrors } from "../utils";
-import { IBoard } from "../utils/types";
 
 export const createBoard = BigPromise(
     async (
@@ -32,10 +30,12 @@ export const createBoard = BigPromise(
 
 export const getAllBoards = BigPromise(
     async (req: Request, res: Response, next: NextFunction) => {
-        const boards = await Board.find().populate({
-            path: "user",
-            select: { _id: 1, name: 1 },
-        });
+        const boards = await Board.find()
+            .populate({
+                path: "user",
+                select: { _id: 1, name: 1 },
+            })
+            .sort({ position: "asc" });
         if (!boards)
             return next(CustomErrors.wentWrong("unable to get boards"));
 
@@ -105,7 +105,8 @@ export const updateBoardPosition = BigPromise(
     ) => {
         const boards = req.body.boards;
 
-        for (const key in boards.reverse()) {
+        if (!boards) return next(CustomErrors.badRequest("nothing to update"));
+        for (const key in boards) {
             const board = boards[key];
             await Board.findByIdAndUpdate(board._id, {
                 $set: { position: key },

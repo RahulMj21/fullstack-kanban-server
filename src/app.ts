@@ -8,7 +8,9 @@ import { checkAuth, errorHandler } from "./middlewares";
 const app = express();
 
 app.use(express.json());
-app.use(cors({ origin: "*" }));
+app.use(
+    cors({ origin: "*", methods: ["GET", "PUT", "POST", "PATCH", "DELETE"] })
+);
 
 app.use("/api/v1", testRoutes);
 app.use("/api/v1/users", authRoutes);

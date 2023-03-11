@@ -13,11 +13,17 @@ import { BoardSchema } from "../schemas/board.schema";
 
 const router = express.Router();
 
-router.route("/:id").get(getSingleBoard).put(updateBoard).delete(deleteBoard);
-router.route("/:userId").get(getAllBoards);
-router.route("/favourites").get(getFavouriteBoards);
-router.route("/create").post(validateResource(BoardSchema), createBoard);
-router.route("/update-position").put(updateBoardPosition);
-router.route("/").get(getAllBoards);
+// POST
+router.post("/create", validateResource(BoardSchema), createBoard);
+// PUT
+router.put("/update-position", updateBoardPosition);
+router.put("/:id", updateBoard);
+// DELETE
+router.delete("/:id", deleteBoard);
+// GET
+router.get("/:id", getSingleBoard);
+router.get("/favourites", getFavouriteBoards);
+router.get("/:userId", getAllBoards);
+router.get("/", getAllBoards);
 
 export default router;
