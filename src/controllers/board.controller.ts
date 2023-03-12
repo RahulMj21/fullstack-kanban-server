@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { Board } from "../models";
+import { Board, Section, Task } from "../models";
 import { TICreateBoardInput } from "../schemas/board.schema";
 import { BigPromise, CustomErrors } from "../utils";
 
@@ -89,6 +89,16 @@ export const getSingleBoard = BigPromise(
             select: { _id: 1, name: 1 },
         });
         if (!board) return next(CustomErrors.notFound());
+
+        const sections = await Section.find({ board: board._id });
+        for (const section of sections) {
+            const tasks = await Task.find({ section: section._id })
+                .populate("section")
+                .sort({ position: "asc" });
+            section._doc.tasks = tasks;
+        }
+        board._doc.sections = sections;
+
         return res.status(200).json({ success: true, data: board.toJSON() });
     }
 );

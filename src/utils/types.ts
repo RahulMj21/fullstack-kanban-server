@@ -31,4 +31,11 @@ export interface IBoard {
     position?: number;
     favourite: boolean;
     favouritePosition: number;
+    _doc?: any;
+}
+
+export interface ISection {
+    board: Types.ObjectId;
+    title: string;
+    _doc?: any;
 }
