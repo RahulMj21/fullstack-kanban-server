@@ -1,11 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 import { Board, Section, Task } from "../models";
-import { TICreateBoardInput } from "../schemas/board.schema";
+import { TCreateBoardInput } from "../schemas/board.schema";
+import { TUpdateBoardInput } from "../schemas/updateBoard.schema";
 import { BigPromise, CustomErrors } from "../utils";
 
 export const createBoard = BigPromise(
     async (
-        req: Request<{}, {}, TICreateBoardInput>,
+        req: Request<{}, {}, TCreateBoardInput>,
         res: Response,
         next: NextFunction
     ) => {
@@ -104,7 +105,64 @@ export const getSingleBoard = BigPromise(
 );
 
 export const updateBoard = BigPromise(
-    async (req: Request, res: Response, next: NextFunction) => {}
+    async (
+        req: Request<{ id: string }, {}, TUpdateBoardInput>,
+        res: Response,
+        next: NextFunction
+    ) => {
+        const boardId = req.params.id;
+        if (!boardId || boardId === "")
+            return next(CustomErrors.badRequest("boardId cannot be empty"));
+        const currentBoard = await Board.findById(boardId);
+        if (!currentBoard)
+            return next(CustomErrors.notFound("board not found"));
+
+        const { description, icon, title, favourite } = req.body;
+        const updateObj: Record<string, string | number | boolean> = {};
+
+        if (typeof title !== "undefined" && title !== "") {
+            updateObj.title = title;
+        }
+        if (typeof description !== "undefined") {
+            updateObj.description = description;
+        }
+        if (typeof icon !== "undefined" && icon !== "") {
+            updateObj.icon = icon;
+        }
+        if (
+            typeof favourite !== "undefined" &&
+            currentBoard.favourite !== favourite
+        ) {
+            updateObj.favourite = favourite;
+            const favourites = await Board.find({
+                user: currentBoard.user,
+                favourite: true,
+                _id: { $ne: boardId },
+            });
+            if (favourite) {
+                updateObj.favouritePosition =
+                    favourites.length > 0 ? favourites.length : 0;
+            } else {
+                for (const key in favourites) {
+                    const favouriteBoard = favourites[key];
+                    await favouriteBoard.update({
+                        favouritePosition: key,
+                    });
+                }
+            }
+        }
+
+        const updatedBoard = await Board.findByIdAndUpdate(boardId, {
+            $set: updateObj,
+        });
+        if (!updatedBoard)
+            return next(CustomErrors.wentWrong("failed to update board"));
+
+        return res.status(200).json({
+            success: true,
+            message: "board updated",
+        });
+    }
 );
 
 export const updateBoardPosition = BigPromise(

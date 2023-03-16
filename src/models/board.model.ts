@@ -15,7 +15,7 @@ const boardSchema = new Schema<IBoard>(
         },
         position: { type: Number, required: true },
         favourite: { type: Boolean, default: false },
-        favouritePosition: { type: Number, default: 0 },
+        favouritePosition: { type: Number },
     },
     { timestamps: true }
 );
