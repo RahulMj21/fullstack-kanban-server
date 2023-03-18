@@ -54,10 +54,12 @@ export const getMyBoards = BigPromise(
         if (!userId || userId === "")
             return next(CustomErrors.badRequest("user_id cannot be empty"));
 
-        const boards = await Board.find({ user: userId }).populate({
-            path: "user",
-            select: { _id: 1, name: 1 },
-        });
+        const boards = await Board.find({ user: userId })
+            .populate({
+                path: "user",
+                select: { _id: 1, name: 1 },
+            })
+            .sort({ position: "asc" });
         if (!boards)
             return next(CustomErrors.wentWrong("unable to get boards"));
 
@@ -172,10 +174,10 @@ export const updateBoardPosition = BigPromise(
         next: NextFunction
     ) => {
         const boards = req.body.boards;
-
         if (!boards) return next(CustomErrors.badRequest("nothing to update"));
         for (const key in boards) {
             const board = boards[key];
+            console.log({ key, board });
             await Board.findByIdAndUpdate(board._id, {
                 $set: { position: key },
             });
