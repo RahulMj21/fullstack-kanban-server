@@ -177,7 +177,6 @@ export const updateBoardPosition = BigPromise(
         if (!boards) return next(CustomErrors.badRequest("nothing to update"));
         for (const key in boards) {
             const board = boards[key];
-            console.log({ key, board });
             await Board.findByIdAndUpdate(board._id, {
                 $set: { position: key },
             });
