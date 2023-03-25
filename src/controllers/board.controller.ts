@@ -46,15 +46,11 @@ export const getAllBoards = BigPromise(
 
 export const getMyBoards = BigPromise(
     async (
-        req: Request<{ userId: string }>,
-        res: Response,
+        req: Request,
+        res: Response<{}, { id: string }>,
         next: NextFunction
     ) => {
-        const userId = req.params.userId;
-        if (!userId || userId === "")
-            return next(CustomErrors.badRequest("user_id cannot be empty"));
-
-        const boards = await Board.find({ user: userId })
+        const boards = await Board.find({ user: res.locals.id })
             .populate({
                 path: "user",
                 select: { _id: 1, name: 1 },
@@ -68,12 +64,18 @@ export const getMyBoards = BigPromise(
 );
 
 export const getFavouriteBoards = BigPromise(
-    async (req: Request, res: Response, next: NextFunction) => {
-        const filter = { favourite: true };
-        const boards = await Board.find(filter).populate({
-            path: "user",
-            select: { _id: 1, name: 1 },
-        });
+    async (
+        req: Request,
+        res: Response<{}, { id: string }>,
+        next: NextFunction
+    ) => {
+        const filter = { favourite: true, user: res.locals.id };
+        const boards = await Board.find(filter)
+            .populate({
+                path: "user",
+                select: { _id: 1, name: 1 },
+            })
+            .sort({ favouritePosition: "asc" });
         if (!boards)
             return next(CustomErrors.wentWrong("unable to get boards"));
 
@@ -179,6 +181,28 @@ export const updateBoardPosition = BigPromise(
             const board = boards[key];
             await Board.findByIdAndUpdate(board._id, {
                 $set: { position: key },
+            });
+        }
+
+        return res.status(200).json({
+            status: "success",
+            message: "position updated",
+        });
+    }
+);
+
+export const updateFavouriteBoardPosition = BigPromise(
+    async (
+        req: Request<{}, {}, { boards: { _id: string }[] }>,
+        res: Response,
+        next: NextFunction
+    ) => {
+        const boards = req.body.boards;
+        if (!boards) return next(CustomErrors.badRequest("nothing to update"));
+        for (const key in boards) {
+            const board = boards[key];
+            await Board.findByIdAndUpdate(board._id, {
+                $set: { favouritePosition: key },
             });
         }
 
