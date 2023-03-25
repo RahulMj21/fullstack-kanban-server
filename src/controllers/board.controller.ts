@@ -214,9 +214,12 @@ export const updateFavouriteBoardPosition = BigPromise(
 );
 
 export const deleteBoard = BigPromise(
-    async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
+    async (
+        req: Request<{ id: string }>,
+        res: Response<{}, { id: string }>,
+        next: NextFunction
+    ) => {
         const userId = res.locals.id;
-        if (!userId) return next(CustomErrors.unauthorized());
 
         const id = req.params.id;
         if (id === "")
@@ -228,6 +231,41 @@ export const deleteBoard = BigPromise(
         if (board.user.toHexString() !== String(userId))
             return next(new CustomErrors(403, "permission denied"));
 
+        const sections = await Section.find({ board: board._id });
+        if (sections && sections.length > 0) {
+            for (const section of sections) {
+                await Task.deleteMany({ section: section._id }).then(() => {
+                    section.remove();
+                });
+            }
+        }
+
+        if (board.favourite) {
+            const favouriteBoards = await Board.find({
+                user: userId,
+                favourite: true,
+                _id: { $ne: board._id },
+            });
+            if (favouriteBoards && favouriteBoards.length > 0) {
+                for (const key in favouriteBoards) {
+                    const favouriteBoard = favouriteBoards[key];
+                    await favouriteBoard.update({
+                        $set: { favouritePosition: key },
+                    });
+                }
+            }
+        }
+
+        const boards = await Board.find({
+            user: userId,
+            _id: { $ne: board._id },
+        });
+        if (boards && boards.length > 0) {
+            for (const key in boards) {
+                const item = boards[key];
+                await item.update({ $set: { position: key } });
+            }
+        }
         await board.remove();
 
         return res
