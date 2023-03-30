@@ -1,14 +1,15 @@
 import { NextFunction, Request, Response } from "express";
 import { Section, Task } from "../models";
+import { TSectionInput } from "../schemas/section.schema";
 import { BigPromise, CustomErrors } from "../utils";
 
 export const createSection = BigPromise(
     async (
-        req: Request<{ id: string }, {}, { title: string }>,
+        req: Request<{ board_id: string }, {}, TSectionInput>,
         res: Response,
         next: NextFunction
     ) => {
-        const boardId = req.params.id;
+        const boardId = req.params.board_id;
         if (!boardId || boardId === "") {
             return next(CustomErrors.badRequest("please provide boardId"));
         }
@@ -23,16 +24,17 @@ export const createSection = BigPromise(
         });
         section._doc.tasks = [];
 
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
             message: "section added",
             data: section.toJSON(),
         });
     }
 );
+
 export const updateSection = BigPromise(
     async (
-        req: Request<{ id: string }, {}, { title: string }>,
+        req: Request<{ id: string }, {}, TSectionInput>,
         res: Response,
         next: NextFunction
     ) => {
@@ -60,6 +62,7 @@ export const updateSection = BigPromise(
         }
     }
 );
+
 export const deleteSection = BigPromise(
     async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
         const sectionId = req.params.id;
