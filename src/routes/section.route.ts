@@ -9,8 +9,8 @@ import { SectionSchema } from "../schemas/section.schema";
 
 const router = express.Router();
 
-router.put("/:id", validateResource(SectionSchema), createSection);
-router.post("/:board_id", validateResource(SectionSchema), updateSection);
+router.put("/:id", validateResource(SectionSchema), updateSection);
+router.post("/:board_id", validateResource(SectionSchema), createSection);
 router.delete("/:id", deleteSection);
 
 export default router;
